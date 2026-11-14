@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Lyric Vault</title>
+
+<style>
+body{
+    background:#0f172a;
+    color:white;
+    font-family:Arial,sans-serif;
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+}
+
+input,textarea{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border:none;
+    border-radius:8px;
+}
+
+textarea{
+    height:200px;
+}
+
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#2563eb;
+    color:white;
+}
+
+.song{
+    background:#1e293b;
+    padding:15px;
+    margin-top:15px;
+    border-radius:10px;
+}
+</style>
+</head>
+<body>
+
+<h1>🎵 AI Lyric Vault</h1>
+
+<input id="title" placeholder="Tajuk Lagu">
+
+<textarea id="lyrics" placeholder="Tulis lirik lagu di sini"></textarea>
+
+<button onclick="saveSong()">Simpan Lagu</button>
+
+<hr>
+
+<input
+id="search"
+placeholder="Cari lagu..."
+onkeyup="displaySongs()">
+
+<div id="songList"></div>
+
+<script>
+
+function getSongs(){
+    return JSON.parse(
+        localStorage.getItem("songs")
+    ) || [];
+}
+
+function saveSong(){
+
+    const title =
+    document.getElementById("title").value;
+
+    const lyrics =
+    document.getElementById("lyrics").value;
+
+    if(!title || !lyrics){
+        alert("Isi tajuk dan lirik.");
+        return;
+    }
+
+    const songs = getSongs();
+
+    songs.push({
+        id:Date.now(),
+        title:title,
+        lyrics:lyrics
+    });
+
+    localStorage.setItem(
+        "songs",
+        JSON.stringify(songs)
+    );
+
+    document.getElementById("title").value="";
+    document.getElementById("lyrics").value="";
+
+    displaySongs();
+}
+
+function deleteSong(id){
+
+    let songs = getSongs();
+
+    songs = songs.filter(
+        s => s.id !== id
+    );
+
+    localStorage.setItem(
+        "songs",
+        JSON.stringify(songs)
+    );
+
+    displaySongs();
+}
+
+function displaySongs(){
+
+    const keyword =
+    document.getElementById("search")
+    .value
+    .toLowerCase();
+
+    const songs =
+    getSongs();
+
+    let html="";
+
+    songs
+    .filter(song =>
+        song.title.toLowerCase().includes(keyword)
+        ||
+        song.lyrics.toLowerCase().includes(keyword)
+    )
+    .forEach(song=>{
+
+        html += `
+        <div class="song">
+            <h3>${song.title}</h3>
+            <pre>${song.lyrics}</pre>
+            <button onclick="deleteSong(${song.id})">
+                Padam
+            </button>
+        </div>
+        `;
+
+    });
+
+    document.getElementById("songList")
+    .innerHTML = html;
+}
+
+displaySongs();
+
+</script>
+
+</body>
+</html>
