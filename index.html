@@ -3,385 +3,489 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
 <title>AI Lyric Vault</title>
-
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+:root {
+    --bg:#0f172a; --panel:#1e293b; --field:#334155;
+    --text:#f8fafc; --muted:#94a3b8; --accent:#38bdf8;
+    --blue:#2563eb; --red:#dc2626; --green:#16a34a;
+    --border:#334155;
 }
-
-body{
-    font-family:Arial,sans-serif;
-    background:#0f172a;
-    color:white;
-    padding:20px;
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+    font-family:Arial, sans-serif; background:var(--bg); color:var(--text);
+    padding:22px; line-height:1.5;
 }
-
-.container{
-    max-width:1100px;
-    margin:auto;
+.container { max-width:1100px; margin:auto; }
+header { text-align:center; margin:10px 0 24px; }
+header h1 { color:var(--accent); font-size:clamp(1.8rem,4vw,2.5rem); }
+header p { color:var(--muted); margin-top:5px; }
+.stats {
+    display:flex; justify-content:center; flex-wrap:wrap; gap:12px;
+    background:var(--panel); padding:16px; border-radius:14px; margin-bottom:18px;
 }
-
-.header{
-    text-align:center;
-    margin-bottom:25px;
+.stat { min-width:130px; text-align:center; }
+.stat strong { display:block; color:var(--accent); font-size:1.5rem; }
+.stat span { color:var(--muted); font-size:.85rem; }
+.card, .song {
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:15px; padding:20px; margin-bottom:18px;
 }
-
-.header h1{
-    font-size:2rem;
-    color:#38bdf8;
+h2 { font-size:1.2rem; margin-bottom:12px; }
+.form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 14px; }
+.field { margin-bottom:12px; }
+.field.full { grid-column:1/-1; }
+label { display:block; font-size:.9rem; color:#cbd5e1; margin-bottom:5px; }
+input, textarea {
+    width:100%; padding:12px; border:1px solid transparent; border-radius:9px;
+    background:var(--field); color:var(--text); font:inherit; outline:none;
 }
-
-.stats{
-    background:#1e293b;
-    padding:15px;
-    border-radius:12px;
-    margin-bottom:20px;
-    text-align:center;
+input:focus, textarea:focus { border-color:var(--accent); }
+input::placeholder, textarea::placeholder { color:#a3b1c2; }
+textarea { min-height:220px; resize:vertical; line-height:1.6; }
+button {
+    border:0; border-radius:9px; padding:11px 15px; cursor:pointer;
+    color:white; font-weight:700; font-size:.9rem;
 }
-
-.card{
-    background:#1e293b;
-    padding:20px;
-    border-radius:15px;
-    margin-bottom:20px;
+button:focus-visible, a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+button:disabled { opacity:.5; cursor:not-allowed; }
+.btn-primary { background:var(--blue); }
+.btn-secondary { background:#475569; }
+.btn-danger { background:var(--red); }
+.btn-green { background:var(--green); }
+.btn-row { display:flex; flex-wrap:wrap; gap:9px; margin-top:10px; }
+.toolbar { display:flex; gap:10px; flex-wrap:wrap; }
+.toolbar input { flex:1; min-width:220px; }
+.song-list { display:grid; gap:16px; }
+.song { margin:0; }
+.song-cover {
+    width:100%; max-height:260px; object-fit:cover; border-radius:10px;
+    margin-bottom:14px; background:var(--field);
 }
-
-input,
-textarea{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    margin-top:10px;
-    background:#334155;
-    color:white;
+.song h3 { color:var(--accent); font-size:1.35rem; margin-bottom:8px; overflow-wrap:anywhere; }
+.meta { color:#cbd5e1; font-size:.92rem; margin:4px 0; overflow-wrap:anywhere; }
+.song-links { display:flex; flex-wrap:wrap; gap:14px; margin:12px 0; }
+a { color:#7dd3fc; text-decoration:none; }
+a:hover { text-decoration:underline; }
+.lyrics {
+    white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7;
+    background:var(--field); padding:15px; border-radius:10px; margin-top:12px;
+    font:inherit; font-size:.95rem;
 }
-
-textarea{
-    min-height:200px;
-    resize:vertical;
+audio { width:100%; margin-top:12px; }
+.empty {
+    text-align:center; padding:35px 15px; border:1px dashed #475569;
+    border-radius:12px; color:var(--muted);
 }
-
-button{
-    border:none;
-    border-radius:10px;
-    padding:12px 18px;
-    cursor:pointer;
-    color:white;
-    font-weight:bold;
-}
-
-.saveBtn{
-    background:#2563eb;
-    margin-top:12px;
-}
-
-.deleteBtn{
-    background:#dc2626;
-    margin-top:15px;
-}
-
-.song{
-    background:#1e293b;
-    border-radius:15px;
-    padding:20px;
-    margin-top:20px;
-}
-
-.song img{
-    width:100%;
-    max-height:250px;
-    object-fit:cover;
-    border-radius:10px;
-    margin-bottom:15px;
-}
-
-.song h2{
-    color:#38bdf8;
-    margin-bottom:10px;
-}
-
-.song p{
-    margin:6px 0;
-}
-
-.song pre{
-    white-space:pre-wrap;
-    line-height:1.6;
-    background:#334155;
-    padding:15px;
-    border-radius:10px;
-    margin-top:15px;
-}
-
-a{
-    color:#60a5fa;
-    text-decoration:none;
-}
-
-a:hover{
-    text-decoration:underline;
-}
-
-hr{
-    margin:15px 0;
-    border-color:#334155;
+.status { color:var(--muted); font-size:.85rem; margin-top:10px; }
+.hidden { display:none !important; }
+footer { text-align:center; color:var(--muted); font-size:.8rem; padding:20px 0 5px; }
+@media (max-width:650px) {
+    body { padding:13px; }
+    .form-grid { grid-template-columns:1fr; }
+    .field.full { grid-column:auto; }
+    .card, .song { padding:15px; }
+    .btn-row button { flex:1 1 auto; }
 }
 </style>
 </head>
-
 <body>
-
 <div class="container">
+<header>
+    <h1>🎵 AI Lyric Vault</h1>
+    <p>Your personal music and lyric archive</p>
+</header>
 
-<div class="header">
-<h1>🎵 AI Lyric Vault</h1>
-<p>Simpan semua lirik lagu anda</p>
-</div>
+<section class="stats" aria-label="Song statistics">
+    <div class="stat"><strong id="totalSongs">0</strong><span>Total Songs</span></div>
+    <div class="stat"><strong id="shownSongs">0</strong><span>Showing</span></div>
+</section>
 
-<div class="stats">
-Jumlah Lagu:
-<b id="totalSongs">0</b>
-</div>
+<section class="card" id="editorCard">
+    <h2 id="formHeading">➕ Add New Song</h2>
+    <form id="songForm">
+        <div class="form-grid">
+            <div class="field">
+                <label for="title">Song Title *</label>
+                <input id="title" maxlength="150" placeholder="Song title" required>
+            </div>
+            <div class="field">
+                <label for="artist">Artist</label>
+                <input id="artist" maxlength="120" placeholder="Artist name">
+            </div>
+            <div class="field">
+                <label for="writer">Lyricist / Writer</label>
+                <input id="writer" maxlength="120" placeholder="Writer name">
+            </div>
+            <div class="field">
+                <label for="genre">Genre</label>
+                <input id="genre" maxlength="80" placeholder="e.g. KR&B, Hip-hop">
+            </div>
+            <div class="field">
+                <label for="date">Creation Date</label>
+                <input id="date" type="date">
+            </div>
+            <div class="field">
+                <label for="cover">Cover Image URL</label>
+                <input id="cover" type="url" placeholder="https://example.com/cover.jpg">
+            </div>
+            <div class="field">
+                <label for="youtube">YouTube URL</label>
+                <input id="youtube" type="url" placeholder="https://youtube.com/...">
+            </div>
+            <div class="field">
+                <label for="mp3">MP3 / Audio URL</label>
+                <input id="mp3" type="url" placeholder="https://example.com/song.mp3">
+            </div>
+            <div class="field full">
+                <label for="lyrics">Lyrics *</label>
+                <textarea id="lyrics" placeholder="Write your lyrics here..." required></textarea>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn-primary" type="submit" id="saveButton">💾 Save Song</button>
+            <button class="btn-secondary hidden" type="button" id="cancelEdit">Cancel Edit</button>
+        </div>
+        <p class="status">* Required fields. Your records are saved in this browser on this device.</p>
+    </form>
+</section>
 
-<div class="card">
+<section class="card">
+    <h2>🛡️ Data Protection</h2>
+    <p class="status">Export a backup regularly. Importing a backup replaces the current song list.</p>
+    <div class="btn-row">
+        <button class="btn-green" type="button" id="exportButton">📥 Export Backup</button>
+        <button class="btn-secondary" type="button" id="importButton">📤 Import Backup</button>
+        <input class="hidden" type="file" id="importFile" accept=".json,application/json">
+    </div>
+</section>
 
-<h2>➕ Tambah Lagu</h2>
+<section class="card">
+    <h2>🔍 Search Library</h2>
+    <div class="toolbar">
+        <input id="search" type="search" placeholder="Search title, artist, writer, genre or lyrics...">
+    </div>
+</section>
 
-<input id="title" placeholder="Tajuk Lagu">
-
-<input id="artist" placeholder="Nama Penyanyi">
-
-<input id="writer" placeholder="Penulis Lirik">
-
-<input id="genre" placeholder="Genre">
-
-<input id="date" type="date">
-
-<input id="cover" placeholder="Link Cover Image">
-
-<input id="youtube" placeholder="Link YouTube">
-
-<input id="mp3" placeholder="Link MP3">
-
-<textarea
-id="lyrics"
-placeholder="Tulis lirik lagu di sini">
-</textarea>
-
-<button class="saveBtn" onclick="saveSong()">
-💾 Simpan Lagu
-</button>
-
-</div>
-
-<div class="card">
-
-<h2>🔍 Cari Lagu</h2>
-
-<input
-id="search"
-placeholder="Cari tajuk, penyanyi atau lirik..."
-onkeyup="displaySongs()">
-
-</div>
-
-<div id="songList"></div>
-
+<section class="song-list" id="songList" aria-live="polite"></section>
+<footer>AI Lyric Vault · Personal Edition · Local Storage</footer>
 </div>
 
 <script>
+"use strict";
 
-function getSongs(){
-    return JSON.parse(
-        localStorage.getItem("songs")
-    ) || [];
+const STORAGE_KEY = "songs";
+const $ = (id) => document.getElementById(id);
+let editingId = null;
+
+function getSongs() {
+    try {
+        const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(value) ? value : [];
+    } catch (error) {
+        console.error("Could not read saved songs:", error);
+        return [];
+    }
 }
 
-function saveSong(){
+function saveSongs(songs) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+        return true;
+    } catch (error) {
+        alert("Unable to save. Browser storage may be full or unavailable. Export a backup and try again.");
+        console.error(error);
+        return false;
+    }
+}
 
-    const title =
-    document.getElementById("title").value.trim();
+function safeHttpUrl(value) {
+    if (typeof value !== "string" || !value.trim()) return "";
+    try {
+        const url = new URL(value.trim());
+        return (url.protocol === "https:" || url.protocol === "http:") ? url.href : "";
+    } catch {
+        return "";
+    }
+}
 
-    const artist =
-    document.getElementById("artist").value.trim();
+function makeElement(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined) el.textContent = text;
+    return el;
+}
 
-    const writer =
-    document.getElementById("writer").value.trim();
+function makeLink(label, value) {
+    const href = safeHttpUrl(value);
+    if (!href) return null;
+    const link = makeElement("a", "", label);
+    link.href = href;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    return link;
+}
 
-    const genre =
-    document.getElementById("genre").value.trim();
+function saveSong(event) {
+    event.preventDefault();
 
-    const date =
-    document.getElementById("date").value;
+    const song = {
+        title: $("title").value.trim(),
+        artist: $("artist").value.trim(),
+        writer: $("writer").value.trim(),
+        genre: $("genre").value.trim(),
+        date: $("date").value,
+        cover: safeHttpUrl($("cover").value),
+        youtube: safeHttpUrl($("youtube").value),
+        mp3: safeHttpUrl($("mp3").value),
+        lyrics: $("lyrics").value.trim()
+    };
 
-    const cover =
-    document.getElementById("cover").value.trim();
-
-    const youtube =
-    document.getElementById("youtube").value.trim();
-
-    const mp3 =
-    document.getElementById("mp3").value.trim();
-
-    const lyrics =
-    document.getElementById("lyrics").value.trim();
-
-    if(!title || !lyrics){
-        alert("Isi tajuk lagu dan lirik.");
+    if (!song.title || !song.lyrics) {
+        alert("Please enter a song title and lyrics.");
         return;
     }
 
     const songs = getSongs();
 
-    songs.unshift({
-        id:Date.now(),
-        title,
-        artist,
-        writer,
-        genre,
-        date,
-        cover,
-        youtube,
-        mp3,
-        lyrics
-    });
+    if (editingId !== null) {
+        const index = songs.findIndex(item => String(item.id) === String(editingId));
+        if (index === -1) {
+            alert("Song not found. It may have been deleted.");
+            cancelEditing();
+            return;
+        }
+        songs[index] = { ...songs[index], ...song };
+        if (!saveSongs(songs)) return;
+        alert("Song updated successfully.");
+    } else {
+        songs.unshift({ id: createId(), ...song });
+        if (!saveSongs(songs)) return;
+        alert("Song saved successfully.");
+    }
 
-    localStorage.setItem(
-        "songs",
-        JSON.stringify(songs)
-    );
-
-    document
-    .querySelectorAll("input, textarea")
-    .forEach(el => el.value = "");
-
+    resetForm();
     displaySongs();
-
-    alert("Lagu berjaya disimpan.");
 }
 
-function deleteSong(id){
+function createId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+}
 
-    if(!confirm("Padam lagu ini?")){
+function resetForm() {
+    $("songForm").reset();
+    editingId = null;
+    $("formHeading").textContent = "➕ Add New Song";
+    $("saveButton").textContent = "💾 Save Song";
+    $("cancelEdit").classList.add("hidden");
+}
+
+function cancelEditing() {
+    resetForm();
+}
+
+function editSong(id) {
+    const song = getSongs().find(item => String(item.id) === String(id));
+    if (!song) {
+        alert("Song not found.");
         return;
     }
 
-    let songs = getSongs();
+    editingId = id;
+    $("title").value = song.title || "";
+    $("artist").value = song.artist || "";
+    $("writer").value = song.writer || "";
+    $("genre").value = song.genre || "";
+    $("date").value = song.date || "";
+    $("cover").value = song.cover || "";
+    $("youtube").value = song.youtube || "";
+    $("mp3").value = song.mp3 || "";
+    $("lyrics").value = song.lyrics || "";
 
-    songs = songs.filter(
-        song => song.id !== id
-    );
+    $("formHeading").textContent = "✏️ Edit Song";
+    $("saveButton").textContent = "💾 Update Song";
+    $("cancelEdit").classList.remove("hidden");
+    $("editorCard").scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
-    localStorage.setItem(
-        "songs",
-        JSON.stringify(songs)
-    );
+function deleteSong(id) {
+    if (!confirm("Are you sure you want to delete this song?")) return;
 
+    const songs = getSongs().filter(song => String(song.id) !== String(id));
+    if (!saveSongs(songs)) return;
+
+    if (String(editingId) === String(id)) resetForm();
     displaySongs();
 }
 
-function displaySongs(){
+function addSongCard(song, parent) {
+    const card = makeElement("article", "song");
 
-    const keyword =
-    document.getElementById("search")
-    .value.toLowerCase();
+    const coverUrl = safeHttpUrl(song.cover);
+    if (coverUrl) {
+        const img = document.createElement("img");
+        img.className = "song-cover";
+        img.src = coverUrl;
+        img.alt = "Cover for " + (song.title || "song");
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.onerror = () => img.remove();
+        card.appendChild(img);
+    }
 
+    card.appendChild(makeElement("h3", "", "🎵 " + (song.title || "Untitled")));
+    card.appendChild(makeElement("p", "meta", "🎤 Artist: " + (song.artist || "-")));
+    card.appendChild(makeElement("p", "meta", "✍️ Writer: " + (song.writer || "-")));
+    card.appendChild(makeElement("p", "meta", "🎶 Genre: " + (song.genre || "-")));
+    card.appendChild(makeElement("p", "meta", "📅 Date: " + (song.date || "-")));
+
+    const links = makeElement("div", "song-links");
+    const yt = makeLink("▶ YouTube", song.youtube);
+    const mp3Link = makeLink("↗ Audio link", song.mp3);
+    if (yt) links.appendChild(yt);
+    if (mp3Link) links.appendChild(mp3Link);
+    if (links.childNodes.length) card.appendChild(links);
+
+    const audioUrl = safeHttpUrl(song.mp3);
+    if (audioUrl) {
+        const audio = document.createElement("audio");
+        audio.controls = true;
+        audio.preload = "none";
+        audio.src = audioUrl;
+        card.appendChild(audio);
+    }
+
+    card.appendChild(makeElement("div", "lyrics", song.lyrics || ""));
+
+    const actions = makeElement("div", "btn-row");
+    const edit = makeElement("button", "btn-primary", "✏️ Edit");
+    edit.type = "button";
+    edit.addEventListener("click", () => editSong(song.id));
+
+    const del = makeElement("button", "btn-danger", "🗑 Delete");
+    del.type = "button";
+    del.addEventListener("click", () => deleteSong(song.id));
+
+    actions.append(edit, del);
+    card.appendChild(actions);
+    parent.appendChild(card);
+}
+
+function displaySongs() {
+    const keyword = $("search").value.trim().toLocaleLowerCase();
     const songs = getSongs();
-
-    document.getElementById(
-        "totalSongs"
-    ).innerText = songs.length;
-
-    let html = "";
-
-    songs
-    .filter(song =>
-
-        song.title.toLowerCase().includes(keyword)
-        ||
-        song.artist.toLowerCase().includes(keyword)
-        ||
-        song.lyrics.toLowerCase().includes(keyword)
-
-    )
-    .forEach(song => {
-
-        html += `
-
-        <div class="song">
-
-            ${
-                song.cover
-                ?
-                `<img src="${song.cover}" alt="Cover">`
-                :
-                ""
-            }
-
-            <h2>🎵 ${song.title}</h2>
-
-            <p><b>🎤 Penyanyi:</b> ${song.artist || "-"}</p>
-
-            <p><b>✍️ Penulis:</b> ${song.writer || "-"}</p>
-
-            <p><b>🎶 Genre:</b> ${song.genre || "-"}</p>
-
-            <p><b>📅 Tarikh:</b> ${song.date || "-"}</p>
-
-            ${
-                song.youtube
-                ?
-                `<p>
-                ▶ <a href="${song.youtube}"
-                target="_blank">
-                YouTube
-                </a>
-                </p>`
-                :
-                ""
-            }
-
-            ${
-                song.mp3
-                ?
-                `<p>
-                🎧 <a href="${song.mp3}"
-                target="_blank">
-                MP3
-                </a>
-                </p>`
-                :
-                ""
-            }
-
-            <hr>
-
-            <pre>${song.lyrics}</pre>
-
-            <button
-            class="deleteBtn"
-            onclick="deleteSong(${song.id})">
-            🗑 Padam
-            </button>
-
-        </div>
-
-        `;
-
+    const filtered = songs.filter(song => {
+        const searchable = [
+            song.title, song.artist, song.writer, song.genre, song.lyrics
+        ].map(value => String(value || "").toLocaleLowerCase()).join(" ");
+        return searchable.includes(keyword);
     });
 
-    document.getElementById(
-        "songList"
-    ).innerHTML = html;
+    $("totalSongs").textContent = songs.length;
+    $("shownSongs").textContent = filtered.length;
+
+    const list = $("songList");
+    list.replaceChildren();
+
+    if (!filtered.length) {
+        list.appendChild(makeElement(
+            "div", "empty",
+            songs.length ? "No songs match your search." : "Your library is empty. Add your first song above."
+        ));
+        return;
+    }
+
+    filtered.forEach(song => addSongCard(song, list));
 }
+
+function exportBackup() {
+    const backup = {
+        app: "AI Lyric Vault",
+        version: "1.1",
+        exportedAt: new Date().toISOString(),
+        songs: getSongs()
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+        type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "AI-Lyric-Vault-Backup-" +
+        new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function normalizeImportedSong(song, index) {
+    if (!song || typeof song !== "object" || Array.isArray(song) ||
+        typeof song.title !== "string" || typeof song.lyrics !== "string") {
+        throw new Error("Invalid song record at row " + (index + 1));
+    }
+
+    return {
+        id: song.id !== undefined && song.id !== null ? String(song.id) : createId(),
+        title: song.title,
+        artist: typeof song.artist === "string" ? song.artist : "",
+        writer: typeof song.writer === "string" ? song.writer : "",
+        genre: typeof song.genre === "string" ? song.genre : "",
+        date: typeof song.date === "string" ? song.date : "",
+        cover: safeHttpUrl(song.cover),
+        youtube: safeHttpUrl(song.youtube),
+        mp3: safeHttpUrl(song.mp3),
+        lyrics: song.lyrics,
+        ...(Array.isArray(song.versions) ? { versions: song.versions } : {}),
+        ...(typeof song.notes === "string" ? { notes: song.notes } : {})
+    };
+}
+
+async function importBackup(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    try {
+        if (file.size > 20 * 1024 * 1024) {
+            throw new Error("Backup file is larger than 20 MB.");
+        }
+
+        const data = JSON.parse(await file.text());
+        const imported = Array.isArray(data) ? data : data.songs;
+
+        if (!Array.isArray(imported)) {
+            throw new Error("This file is not a valid Lyric Vault backup.");
+        }
+
+        const normalized = imported.map(normalizeImportedSong);
+
+        if (!confirm(
+            "This will replace your current " + getSongs().length +
+            " song(s) with " + normalized.length +
+            " imported song(s). Export your current data first if needed. Continue?"
+        )) return;
+
+        if (!saveSongs(normalized)) return;
+        resetForm();
+        displaySongs();
+        alert("Backup imported successfully.");
+    } catch (error) {
+        alert("Import failed: " + error.message);
+    } finally {
+        event.target.value = "";
+    }
+}
+
+$("songForm").addEventListener("submit", saveSong);
+$("cancelEdit").addEventListener("click", cancelEditing);
+$("search").addEventListener("input", displaySongs);
+$("exportButton").addEventListener("click", exportBackup);
+$("importButton").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", importBackup);
 
 displaySongs();
-
 </script>
-
 </body>
 </html>
