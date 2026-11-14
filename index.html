@@ -1,337 +1,1125 @@
-from pathlib import Path
 
-html = r'''<!DOCTYPE html>
-<html lang="ms">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f172a">
 <title>AI Lyric Vault</title>
+
 <style>
-:root{--bg:#0f172a;--panel:#1e293b;--field:#334155;--text:#f8fafc;--muted:#94a3b8;--accent:#38bdf8;--blue:#2563eb;--red:#dc2626;--green:#16a34a;--border:#334155}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);padding:22px;line-height:1.5}
-.container{max-width:1180px;margin:auto}
-header{text-align:center;margin:10px 0 24px}
-header h1{color:var(--accent);font-size:clamp(1.8rem,4vw,2.5rem)}
-header p{color:var(--muted);margin-top:5px}
-.stats{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;background:var(--panel);padding:16px;border-radius:14px;margin-bottom:18px}
-.stat{min-width:130px;text-align:center}.stat strong{display:block;color:var(--accent);font-size:1.5rem}.stat span{color:var(--muted);font-size:.85rem}
-.card,.song{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:20px;margin-bottom:18px}
-h2{font-size:1.2rem;margin-bottom:12px}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
-.field{margin-bottom:12px}.field.full{grid-column:1/-1}
-label{display:block;font-size:.9rem;color:#cbd5e1;margin-bottom:5px}
-input,textarea,select{width:100%;padding:12px;border:1px solid transparent;border-radius:9px;background:var(--field);color:var(--text);font:inherit;outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--accent)}
-input::placeholder,textarea::placeholder{color:#a3b1c2}
-textarea{min-height:220px;resize:vertical;line-height:1.6}
-button{border:0;border-radius:9px;padding:11px 15px;cursor:pointer;color:white;font-weight:700;font-size:.9rem}
-button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-button:disabled{opacity:.5;cursor:not-allowed}
-.btn-primary{background:var(--blue)}.btn-secondary{background:#475569}.btn-danger{background:var(--red)}.btn-green{background:var(--green)}
-.btn-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px}
-.status,.muted{color:var(--muted);font-size:.85rem;margin-top:10px}
-.hidden{display:none!important}
-.backup-actions{display:flex;gap:9px;flex-wrap:wrap}
-.library-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-.library-head h2{margin:0}
-.controls{display:grid;grid-template-columns:minmax(200px,2fr) repeat(3,minmax(130px,1fr));gap:10px;margin-bottom:16px}
-.song-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.song{padding:13px;margin:0;min-width:0;display:flex;flex-direction:column;gap:8px}
-.cover-wrap{aspect-ratio:1/1;background:var(--field);border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.song-cover{width:100%;height:100%;object-fit:cover}
-.cover-placeholder{font-size:2.8rem;color:var(--accent)}
-.song h3{color:var(--accent);font-size:1.08rem;overflow-wrap:anywhere}
-.song-meta{color:#cbd5e1;font-size:.85rem;overflow-wrap:anywhere}
-.song-tag{display:inline-block;align-self:flex-start;background:#0c4a6e;color:#bae6fd;border-radius:999px;padding:3px 9px;font-size:.75rem}
-.song-actions{display:flex;gap:8px;margin-top:auto;padding-top:5px}
-.song-actions button{flex:1;padding:9px 8px}
-.empty{text-align:center;padding:38px 15px;border:1px dashed #475569;border-radius:12px;color:var(--muted);grid-column:1/-1}
-.pagination{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px}
-.pagination button{min-width:82px}
-.page-info{color:var(--muted);font-size:.88rem}
-a{color:#7dd3fc;text-decoration:none}a:hover{text-decoration:underline}
-dialog{width:min(720px,calc(100% - 24px));max-height:88vh;margin:auto;border:1px solid #475569;border-radius:16px;background:var(--panel);color:var(--text);padding:0}
-dialog::backdrop{background:rgba(2,6,23,.82)}
-.modal-inner{padding:22px;overflow-y:auto;max-height:88vh}
-.modal-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.modal-top h2{color:var(--accent);font-size:1.4rem;overflow-wrap:anywhere}
-.modal-cover{width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin:12px 0}
-.modal-lyrics{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;background:var(--field);padding:16px;border-radius:10px;margin-top:14px;font-size:.95rem}
-.modal-links{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0}
-audio{width:100%;margin-top:10px}
-footer{text-align:center;color:var(--muted);font-size:.8rem;padding:20px 0 5px}
-@media(max-width:850px){.song-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){body{padding:13px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:15px}.song-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.song{padding:10px}.song h3{font-size:.95rem}.song-meta{font-size:.78rem}.song-actions button{font-size:.78rem;padding:8px 5px}.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1/-1}}
+:root {
+    --bg: #080d18;
+    --panel: #111a2b;
+    --panel2: #172238;
+    --border: #263650;
+    --text: #edf3ff;
+    --muted: #91a0b8;
+    --accent: #7c9cff;
+    --danger: #ff647c;
+    --success: #60d6a5;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
+
+button, input, textarea, select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.container {
+    width: min(1200px, 92%);
+    margin: auto;
+}
+
+header {
+    padding: 28px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: var(--accent);
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+button {
+    border: none;
+    border-radius: 9px;
+    padding: 11px 15px;
+    color: white;
+    background: var(--accent);
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: .85;
+}
+
+button.secondary {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+}
+
+button.danger {
+    background: #512334;
+    color: #ff9aab;
+}
+
+button.success {
+    background: #174b3c;
+    color: #83f0c2;
+}
+
+main {
+    padding: 28px 0 60px;
+}
+
+.section-title {
+    font-size: 19px;
+    margin: 0 0 16px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 18px;
+}
+
+.stat-number {
+    font-size: 27px;
+    font-weight: bold;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 13px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.field.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+input, textarea, select {
+    width: 100%;
+    background: #0b1322;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    outline: none;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 180px;
+    line-height: 1.6;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.toolbar {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.library-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.song-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.song-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.cover {
+    height: 155px;
+    background: linear-gradient(135deg, #253c69, #111a2b);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #a8bbff;
+    font-size: 35px;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.song-info {
+    padding: 15px;
+}
+
+.song-title {
+    font-size: 17px;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+    margin-bottom: 6px;
+}
+
+.song-artist {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.tag {
+    background: #202f4b;
+    color: #b8caff;
+    border-radius: 20px;
+    padding: 5px 9px;
+    font-size: 11px;
+}
+
+.song-date {
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 13px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.card-actions button {
+    flex: 1;
+    padding: 9px 5px;
+    font-size: 12px;
+}
+
+.empty-state {
+    background: var(--panel);
+    border: 1px dashed var(--border);
+    padding: 45px 15px;
+    text-align: center;
+    border-radius: 13px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    min-width: 40px;
+    padding: 9px 12px;
+}
+
+.pagination button.active {
+    background: white;
+    color: #172238;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: rgba(0, 0, 0, .78);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal.show {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.modal-content {
+    width: min(750px, 100%);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 23px;
+    margin: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.close-btn {
+    background: var(--panel2);
+    padding: 8px 12px;
+}
+
+.lyrics-content {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.8;
+    background: #0b1322;
+    border-radius: 10px;
+    padding: 18px;
+    max-height: 60vh;
+    overflow-y: auto;
+    font-size: 14px;
+}
+
+.modal-links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.modal-links a {
+    color: #a8bbff;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 25px 0;
+    border-top: 1px solid var(--border);
+}
+
+@media (max-width: 850px) {
+    .song-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .toolbar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 520px) {
+    .stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+    }
+
+    .stat-card {
+        padding: 12px 8px;
+    }
+
+    .stat-number {
+        font-size: 21px;
+    }
+
+    .stat-label {
+        font-size: 10px;
+    }
+
+    .song-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+    }
+
+    .cover {
+        height: 110px;
+    }
+
+    .song-info {
+        padding: 10px;
+    }
+
+    .song-title {
+        font-size: 14px;
+    }
+
+    .card-actions {
+        flex-direction: column;
+    }
+
+    .toolbar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .field.full {
+        grid-column: auto;
+    }
+}
 </style>
 </head>
+
 <body>
-<div class="container">
-<header><h1>🎵 AI Lyric Vault</h1><p>Your personal music and lyric archive</p></header>
 
-<section class="stats">
-  <div class="stat"><strong id="totalSongs">0</strong><span>Total Songs</span></div>
-  <div class="stat"><strong id="shownSongs">0</strong><span>Matching Songs</span></div>
-</section>
+<header>
+    <div class="container header-content">
+        <div>
+            <div class="logo">AI LYRIC <span>VAULT</span></div>
+            <div class="subtitle">Your personal songwriting archive.</div>
+        </div>
 
-<section class="card" id="editorCard">
-  <h2 id="formHeading">➕ Add New Song</h2>
-  <form id="songForm">
-    <div class="form-grid">
-      <div class="field"><label for="title">Song Title *</label><input id="title" maxlength="150" required placeholder="Song title"></div>
-      <div class="field"><label for="artist">Artist</label><input id="artist" maxlength="120" placeholder="Artist name"></div>
-      <div class="field"><label for="writer">Lyricist / Writer</label><input id="writer" maxlength="120" placeholder="Writer name"></div>
-      <div class="field"><label for="genre">Genre</label><input id="genre" maxlength="80" placeholder="e.g. KR&B, Hip-hop"></div>
-      <div class="field"><label for="date">Creation Date</label><input id="date" type="date"></div>
-      <div class="field"><label for="cover">Cover Image URL</label><input id="cover" type="url" placeholder="https://example.com/cover.jpg"></div>
-      <div class="field"><label for="youtube">YouTube URL</label><input id="youtube" type="url" placeholder="https://youtube.com/..."></div>
-      <div class="field"><label for="mp3">MP3 / Audio URL</label><input id="mp3" type="url" placeholder="https://example.com/song.mp3"></div>
-      <div class="field full"><label for="lyrics">Lyrics *</label><textarea id="lyrics" required placeholder="Write your lyrics here..."></textarea></div>
+        <div>
+            <button id="exportBtn" class="secondary">Export Backup</button>
+            <button id="importBtn" class="secondary">Import Backup</button>
+            <input type="file" id="importFile" accept=".json,application/json" hidden>
+        </div>
     </div>
-    <div class="btn-row">
-      <button class="btn-primary" type="submit" id="saveButton">💾 Save Song</button>
-      <button class="btn-secondary hidden" type="button" id="cancelEdit">Cancel Edit</button>
+</header>
+
+<main class="container">
+
+    <section class="stats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalSongs">0</div>
+            <div class="stat-label">Total Songs</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-number" id="totalArtists">0</div>
+            <div class="stat-label">Artists</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-number" id="totalGenres">0</div>
+            <div class="stat-label">Genres</div>
+        </div>
+    </section>
+
+    <section class="panel" id="formPanel">
+        <h2 class="section-title" id="formTitle">＋ Add New Song</h2>
+
+        <form id="songForm">
+            <div class="form-grid">
+
+                <div class="field">
+                    <label for="title">Song Title *</label>
+                    <input id="title" required placeholder="Enter song title">
+                </div>
+
+                <div class="field">
+                    <label for="artist">Artist *</label>
+                    <input id="artist" required placeholder="Enter artist name">
+                </div>
+
+                <div class="field">
+                    <label for="writer">Songwriter</label>
+                    <input id="writer" placeholder="Enter songwriter">
+                </div>
+
+                <div class="field">
+                    <label for="genre">Genre</label>
+                    <input id="genre" placeholder="e.g. KR&B, Hip-Hop">
+                </div>
+
+                <div class="field">
+                    <label for="date">Release / Creation Date</label>
+                    <input id="date" type="date">
+                </div>
+
+                <div class="field">
+                    <label for="cover">Cover Image URL</label>
+                    <input id="cover" type="url" placeholder="https://example.com/cover.jpg">
+                </div>
+
+                <div class="field">
+                    <label for="youtube">YouTube Link</label>
+                    <input id="youtube" type="url" placeholder="https://youtube.com/...">
+                </div>
+
+                <div class="field">
+                    <label for="mp3">Audio Link</label>
+                    <input id="mp3" type="url" placeholder="https://example.com/audio.mp3">
+                </div>
+
+                <div class="field full">
+                    <label for="lyrics">Lyrics *</label>
+                    <textarea id="lyrics" required placeholder="Write your lyrics here..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" id="saveBtn">Save Song</button>
+                <button type="button" class="secondary" id="cancelEditBtn" hidden>Cancel Edit</button>
+                <button type="reset" class="secondary">Clear Form</button>
+            </div>
+        </form>
+    </section>
+
+    <section>
+        <div class="library-info">
+            <h2 class="section-title">Your Library</h2>
+            <span class="subtitle" id="resultCount">0 songs</span>
+        </div>
+
+        <div class="toolbar">
+            <input id="search" placeholder="Search songs, artists, lyrics...">
+
+            <select id="artistFilter">
+                <option value="">All Artists</option>
+            </select>
+
+            <select id="genreFilter">
+                <option value="">All Genres</option>
+            </select>
+
+            <select id="sortBy">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="az">Title A–Z</option>
+                <option value="za">Title Z–A</option>
+            </select>
+        </div>
+
+        <div class="song-grid" id="songGrid"></div>
+
+        <div class="pagination" id="pagination"></div>
+    </section>
+
+</main>
+
+<div class="modal" id="songModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h2 id="modalTitle">Song Title</h2>
+                <div class="subtitle" id="modalArtist"></div>
+            </div>
+            <button class="close-btn" id="closeModal">✕</button>
+        </div>
+
+        <div class="tags" id="modalTags"></div>
+
+        <div class="lyrics-content" id="modalLyrics"></div>
+
+        <div class="modal-links" id="modalLinks"></div>
     </div>
-    <p class="status">* Required fields. Records are saved in this browser on this device.</p>
-  </form>
-</section>
-
-<section class="card">
-  <h2>🛡️ Data Protection</h2>
-  <p class="status">Export backups regularly. Importing a backup replaces the current library.</p>
-  <div class="backup-actions" style="margin-top:12px">
-    <button class="btn-green" type="button" id="exportButton">📥 Export Backup</button>
-    <button class="btn-secondary" type="button" id="importButton">📤 Import Backup</button>
-    <input class="hidden" type="file" id="importFile" accept=".json,application/json">
-  </div>
-</section>
-
-<section class="card">
-  <div class="library-head"><h2>📚 Song Library</h2><span class="muted" id="pageSizeLabel">12 songs per page</span></div>
-  <div class="controls">
-    <input id="search" type="search" placeholder="Search title, lyrics, artist...">
-    <select id="artistFilter" aria-label="Filter by artist"><option value="">All Artists</option></select>
-    <select id="genreFilter" aria-label="Filter by genre"><option value="">All Genres</option></select>
-    <select id="sortOrder" aria-label="Sort songs">
-      <option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="az">Title A–Z</option><option value="za">Title Z–A</option>
-    </select>
-  </div>
-  <div id="songGrid" class="song-grid" aria-live="polite"></div>
-  <div class="pagination">
-    <button class="btn-secondary" id="prevPage" type="button">← Previous</button>
-    <span class="page-info" id="pageInfo">Page 1 of 1</span>
-    <button class="btn-secondary" id="nextPage" type="button">Next →</button>
-  </div>
-</section>
-
-<dialog id="songDialog">
-  <div class="modal-inner">
-    <div class="modal-top"><h2 id="modalTitle">Song</h2><button class="btn-secondary" id="closeDialog" type="button">✕ Close</button></div>
-    <div id="modalContent"></div>
-    <div class="btn-row"><button class="btn-primary" id="modalEdit" type="button">✏️ Edit Song</button><button class="btn-danger" id="modalDelete" type="button">🗑 Delete Song</button></div>
-  </div>
-</dialog>
-
-<footer>AI Lyric Vault · Personal Edition · Local Storage</footer>
 </div>
 
+<footer>
+    AI Lyric Vault · Personal Edition · Data stored locally in your browser
+</footer>
+
 <script>
-"use strict";
-const STORAGE_KEY="songs";
-const PAGE_SIZE=12;
-const $=id=>document.getElementById(id);
-let editingId=null,currentPage=1,activeSongId=null;
+const STORAGE_KEY = "songs";
+const SONGS_PER_PAGE = 12;
 
-function getSongs(){
-  try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(value)?value:[]}
-  catch(error){console.error("Could not read songs:",error);return[]}
-}
-function saveSongs(songs){
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(songs));return true}
-  catch(error){alert("Unable to save. Browser storage may be full or unavailable. Export a backup and try again.");console.error(error);return false}
-}
-function safeHttpUrl(value){
-  if(typeof value!=="string"||!value.trim())return"";
-  try{const url=new URL(value.trim());return(url.protocol==="https:"||url.protocol==="http:")?url.href:""}catch{return""}
-}
-function el(tag,className,text){
-  const node=document.createElement(tag);
-  if(className)node.className=className;
-  if(text!==undefined)node.textContent=text;
-  return node;
-}
-function linkNode(label,value){
-  const href=safeHttpUrl(value);if(!href)return null;
-  const a=el("a","",label);a.href=href;a.target="_blank";a.rel="noopener noreferrer";return a;
-}
-function createId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,9)}
+let songs = loadSongs();
+let currentPage = 1;
+let editingId = null;
 
-function handleSave(event){
-  event.preventDefault();
-  const song={
-    title:$("title").value.trim(),artist:$("artist").value.trim(),
-    writer:$("writer").value.trim(),genre:$("genre").value.trim(),
-    date:$("date").value,cover:safeHttpUrl($("cover").value),
-    youtube:safeHttpUrl($("youtube").value),mp3:safeHttpUrl($("mp3").value),
-    lyrics:$("lyrics").value.trim()
-  };
-  if(!song.title||!song.lyrics){alert("Please enter a song title and lyrics.");return}
-  const songs=getSongs();
-  if(editingId!==null){
-    const index=songs.findIndex(s=>String(s.id)===String(editingId));
-    if(index<0){alert("Song not found.");resetForm();return}
-    songs[index]={...songs[index],...song};
-    if(!saveSongs(songs))return;
-    alert("Song updated successfully.");
-  }else{
-    songs.unshift({id:createId(),...song});
-    if(!saveSongs(songs))return;
-    alert("Song saved successfully.");
-  }
-  resetForm();currentPage=1;renderLibrary();
-}
-function resetForm(){
-  $("songForm").reset();editingId=null;
-  $("formHeading").textContent="➕ Add New Song";
-  $("saveButton").textContent="💾 Save Song";
-  $("cancelEdit").classList.add("hidden");
-}
-function cancelEditing(){resetForm()}
-function editSong(id){
-  const song=getSongs().find(s=>String(s.id)===String(id));if(!song){alert("Song not found.");return}
-  editingId=id;
-  ["title","artist","writer","genre","date","cover","youtube","mp3","lyrics"].forEach(key=>$(key).value||"");
-  $("title").value=song.title||"";$("artist").value=song.artist||"";
-  $("writer").value=song.writer||"";$("genre").value=song.genre||"";
-  $("date").value=song.date||"";$("cover").value=song.cover||"";
-  $("youtube").value=song.youtube||"";$("mp3").value=song.mp3||"";
-  $("lyrics").value=song.lyrics||"";
-  $("formHeading").textContent="✏️ Edit Song";$("saveButton").textContent="💾 Update Song";
-  $("cancelEdit").classList.remove("hidden");$("songDialog").close();
-  $("editorCard").scrollIntoView({behavior:"smooth",block:"start"});
-}
-function deleteSong(id){
-  if(!confirm("Are you sure you want to delete this song?"))return;
-  const songs=getSongs().filter(s=>String(s.id)!==String(id));
-  if(!saveSongs(songs))return;
-  if(String(editingId)===String(id))resetForm();
-  if($("songDialog").open)$("songDialog").close();
-  activeSongId=null;renderLibrary();
-}
-function showSong(id){
-  const song=getSongs().find(s=>String(s.id)===String(id));if(!song)return;
-  activeSongId=id;$("modalTitle").textContent=song.title||"Untitled";
-  const content=$("modalContent");content.replaceChildren();
-  if(safeHttpUrl(song.cover)){
-    const img=el("img","modal-cover");img.src=safeHttpUrl(song.cover);img.alt="Cover for "+(song.title||"song");img.onerror=()=>img.remove();content.appendChild(img);
-  }
-  [["🎤 Artist: ",song.artist],["✍️ Writer: ",song.writer],["🎶 Genre: ",song.genre],["📅 Date: ",song.date]].forEach(([label,value])=>content.appendChild(el("p","song-meta",label+(value||"-"))));
-  const links=el("div","modal-links");
-  const yt=linkNode("▶ YouTube",song.youtube),mp3=linkNode("↗ Audio link",song.mp3);
-  if(yt)links.appendChild(yt);if(mp3)links.appendChild(mp3);if(links.childNodes.length)content.appendChild(links);
-  if(safeHttpUrl(song.mp3)){const audio=el("audio");audio.controls=true;audio.preload="none";audio.src=safeHttpUrl(song.mp3);content.appendChild(audio)}
-  content.appendChild(el("div","modal-lyrics",song.lyrics||""));
-  $("songDialog").showModal();
-}
-function updateFilterOptions(songs){
-  const artist=$("artistFilter"),genre=$("genreFilter"),oldArtist=artist.value,oldGenre=genre.value;
-  const fill=(select,values,placeholder,previous)=>{
-    select.replaceChildren();select.appendChild(new Option(placeholder,""));
-    [...new Set(values.map(v=>String(v||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b)).forEach(value=>select.appendChild(new Option(value,value)));
-    select.value=values.some(v=>String(v||"").trim()===previous)?previous:"";
-  };
-  fill(artist,songs.map(s=>s.artist),"All Artists",oldArtist);
-  fill(genre,songs.map(s=>s.genre),"All Genres",oldGenre);
-}
-function getFilteredSongs(){
-  const keyword=$("search").value.trim().toLocaleLowerCase();
-  let songs=getSongs();
-  songs=songs.filter(song=>{
-    const text=[song.title,song.artist,song.writer,song.genre,song.lyrics].map(v=>String(v||"").toLocaleLowerCase()).join(" ");
-    return text.includes(keyword)&&(!$("artistFilter").value||song.artist===$("artistFilter").value)&&(!$("genreFilter").value||song.genre===$("genreFilter").value);
-  });
-  const sort=$("sortOrder").value;
-  if(sort==="az")songs.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
-  else if(sort==="za")songs.sort((a,b)=>(b.title||"").localeCompare(a.title||""));
-  else if(sort==="oldest")songs.reverse();
-  return songs;
-}
-function renderLibrary(){
-  const all=getSongs();$("totalSongs").textContent=all.length;
-  updateFilterOptions(all);
-  const filtered=getFilteredSongs();$("shownSongs").textContent=filtered.length;
-  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
-  currentPage=Math.min(Math.max(1,currentPage),pages);
-  const start=(currentPage-1)*PAGE_SIZE;
-  const visible=filtered.slice(start,start+PAGE_SIZE);
-  const grid=$("songGrid");grid.replaceChildren();
-  if(!visible.length){
-    grid.appendChild(el("div","empty",all.length?"No songs match your search or filters.":"Your library is empty. Add your first song above."));
-  }else visible.forEach(song=>{
-    const card=el("article","song");
-    const cover=el("div","cover-wrap");
-    if(safeHttpUrl(song.cover)){
-      const img=el("img","song-cover");img.src=safeHttpUrl(song.cover);img.alt="Cover for "+(song.title||"song");img.loading="lazy";img.onerror=()=>{cover.replaceChildren(el("div","cover-placeholder","🎵"))};cover.appendChild(img);
-    }else cover.appendChild(el("div","cover-placeholder","🎵"));
-    card.appendChild(cover);
-    card.appendChild(el("h3","",song.title||"Untitled"));
-    card.appendChild(el("p","song-meta",song.artist||"Unknown artist"));
-    if(song.genre)card.appendChild(el("span","song-tag",song.genre));
-    if(song.date)card.appendChild(el("p","song-meta","📅 "+song.date));
-    const actions=el("div","song-actions");
-    const view=el("button","btn-primary","View Lyrics");view.type="button";view.addEventListener("click",()=>showSong(song.id));
-    const edit=el("button","btn-secondary","Edit");edit.type="button";edit.addEventListener("click",()=>editSong(song.id));
-    actions.append(view,edit);card.appendChild(actions);grid.appendChild(card);
-  });
-  $("pageInfo").textContent="Page "+currentPage+" of "+pages;
-  $("prevPage").disabled=currentPage===1;$("nextPage").disabled=currentPage===pages;
-  $("pageSizeLabel").textContent=PAGE_SIZE+" songs per page";
-}
-function exportBackup(){
-  const backup={app:"AI Lyric Vault",version:"1.2",exportedAt:new Date().toISOString(),songs:getSongs()};
-  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="AI-Lyric-Vault-Backup-"+new Date().toISOString().slice(0,10)+".json";
-  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-function normalizeImportedSong(song,index){
-  if(!song||typeof song!=="object"||Array.isArray(song)||typeof song.title!=="string"||typeof song.lyrics!=="string")throw new Error("Invalid song record at row "+(index+1));
-  return{id:song.id!==undefined&&song.id!==null?String(song.id):createId(),title:song.title,artist:typeof song.artist==="string"?song.artist:"",writer:typeof song.writer==="string"?song.writer:"",genre:typeof song.genre==="string"?song.genre:"",date:typeof song.date==="string"?song.date:"",cover:safeHttpUrl(song.cover),youtube:safeHttpUrl(song.youtube),mp3:safeHttpUrl(song.mp3),lyrics:song.lyrics,...(Array.isArray(song.versions)?{versions:song.versions}:{}),...(typeof song.notes==="string"?{notes:song.notes}:{})};
-}
-async function importBackup(event){
-  const file=event.target.files&&event.target.files[0];if(!file)return;
-  try{
-    if(file.size>20*1024*1024)throw new Error("Backup file is larger than 20 MB.");
-    const data=JSON.parse(await file.text()),records=Array.isArray(data)?data:data.songs;
-    if(!Array.isArray(records))throw new Error("This is not a valid Lyric Vault backup.");
-    const songs=records.map(normalizeImportedSong);
-    if(!confirm("This will replace your current "+getSongs().length+" song(s) with "+songs.length+" imported song(s). Export your current data first if needed. Continue?"))return;
-    if(!saveSongs(songs))return;
-    resetForm();currentPage=1;renderLibrary();alert("Backup imported successfully.");
-  }catch(error){alert("Import failed: "+error.message)}
-  finally{event.target.value=""}
+const $ = id => document.getElementById(id);
+
+function loadSongs() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(saved) ? saved.map(normalizeSong) : [];
+    } catch {
+        return [];
+    }
 }
 
-$("songForm").addEventListener("submit",handleSave);
-$("cancelEdit").addEventListener("click",cancelEditing);
-$("search").addEventListener("input",()=>{currentPage=1;renderLibrary()});
-$("artistFilter").addEventListener("change",()=>{currentPage=1;renderLibrary()});
-$("genreFilter").addEventListener("change",()=>{currentPage=1;renderLibrary()});
-$("sortOrder").addEventListener("change",()=>{currentPage=1;renderLibrary()});
-$("prevPage").addEventListener("click",()=>{if(currentPage>1){currentPage--;renderLibrary();$("songGrid").scrollIntoView({behavior:"smooth",block:"start"})}});
-$("nextPage").addEventListener("click",()=>{currentPage++;renderLibrary();$("songGrid").scrollIntoView({behavior:"smooth",block:"start"})});
-$("exportButton").addEventListener("click",exportBackup);
-$("importButton").addEventListener("click",()=>$("importFile").click());
-$("importFile").addEventListener("change",importBackup);
-$("closeDialog").addEventListener("click",()=>$("songDialog").close());
-$("modalEdit").addEventListener("click",()=>{if(activeSongId!==null)editSong(activeSongId)});
-$("modalDelete").addEventListener("click",()=>{if(activeSongId!==null)deleteSong(activeSongId)});
+function normalizeSong(song) {
+    return {
+        id: String(song.id || makeId()),
+        title: String(song.title || ""),
+        artist: String(song.artist || ""),
+        writer: String(song.writer || ""),
+        genre: String(song.genre || ""),
+        date: String(song.date || ""),
+        cover: String(song.cover || ""),
+        youtube: String(song.youtube || ""),
+        mp3: String(song.mp3 || ""),
+        lyrics: String(song.lyrics || "")
+    };
+}
+
+function makeId() {
+    if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+
+    return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function saveStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+}
+
+function safeUrl(value) {
+    try {
+        const url = new URL(value);
+
+        if (url.protocol === "https:" || url.protocol === "http:") {
+            return url.href;
+        }
+    } catch {}
+
+    return "";
+}
+
+function createElement(tag, className, text) {
+    const element = document.createElement(tag);
+
+    if (className) {
+        element.className = className;
+    }
+
+    if (text !== undefined) {
+        element.textContent = text;
+    }
+
+    return element;
+}
+
+function updateStats() {
+    $("totalSongs").textContent = songs.length;
+
+    $("totalArtists").textContent =
+        new Set(songs.map(s => s.artist.trim().toLowerCase()).filter(Boolean)).size;
+
+    $("totalGenres").textContent =
+        new Set(songs.map(s => s.genre.trim().toLowerCase()).filter(Boolean)).size;
+}
+
+function updateFilters() {
+    const artistValue = $("artistFilter").value;
+    const genreValue = $("genreFilter").value;
+
+    const artists = [...new Set(
+        songs.map(s => s.artist.trim()).filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+
+    const genres = [...new Set(
+        songs.map(s => s.genre.trim()).filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+
+    $("artistFilter").replaceChildren(
+        new Option("All Artists", ""),
+        ...artists.map(name => new Option(name, name))
+    );
+
+    $("genreFilter").replaceChildren(
+        new Option("All Genres", ""),
+        ...genres.map(name => new Option(name, name))
+    );
+
+    $("artistFilter").value = artists.includes(artistValue) ? artistValue : "";
+    $("genreFilter").value = genres.includes(genreValue) ? genreValue : "";
+}
+
+function getFilteredSongs() {
+    const keyword = $("search").value.trim().toLowerCase();
+    const artist = $("artistFilter").value;
+    const genre = $("genreFilter").value;
+    const sort = $("sortBy").value;
+
+    let result = songs.filter(song => {
+        const searchable = [
+            song.title,
+            song.artist,
+            song.writer,
+            song.genre,
+            song.lyrics
+        ].join(" ").toLowerCase();
+
+        return searchable.includes(keyword)
+            && (!artist || song.artist === artist)
+            && (!genre || song.genre === genre);
+    });
+
+    result.sort((a, b) => {
+        if (sort === "az") {
+            return a.title.localeCompare(b.title);
+        }
+
+        if (sort === "za") {
+            return b.title.localeCompare(a.title);
+        }
+
+        if (sort === "oldest") {
+            return (a.date || "").localeCompare(b.date || "");
+        }
+
+        return (b.date || "").localeCompare(a.date || "");
+    });
+
+    return result;
+}
+
+function renderLibrary() {
+    updateStats();
+    updateFilters();
+
+    const filtered = getFilteredSongs();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / SONGS_PER_PAGE));
+
+    currentPage = Math.min(currentPage, totalPages);
+
+    const start = (currentPage - 1) * SONGS_PER_PAGE;
+    const pageSongs = filtered.slice(start, start + SONGS_PER_PAGE);
+
+    $("resultCount").textContent =
+        `${filtered.length} song${filtered.length === 1 ? "" : "s"}`;
+
+    const grid = $("songGrid");
+    grid.replaceChildren();
+
+    if (pageSongs.length === 0) {
+        const empty = createElement(
+            "div",
+            "empty-state",
+            songs.length === 0
+                ? "Your vault is empty. Add your first song above!"
+                : "No songs found. Try another search or filter."
+        );
+
+        grid.appendChild(empty);
+    } else {
+        pageSongs.forEach(song => {
+            grid.appendChild(createSongCard(song));
+        });
+    }
+
+    renderPagination(totalPages);
+}
+
+function createSongCard(song) {
+    const card = createElement("article", "song-card");
+
+    const cover = createElement("div", "cover");
+
+    const coverUrl = safeUrl(song.cover);
+
+    if (coverUrl) {
+        const image = document.createElement("img");
+        image.src = coverUrl;
+        image.alt = song.title + " cover";
+        image.loading = "lazy";
+
+        image.onerror = () => {
+            cover.replaceChildren();
+            cover.textContent = "♫";
+        };
+
+        cover.appendChild(image);
+    } else {
+        cover.textContent = "♫";
+    }
+
+    const info = createElement("div", "song-info");
+    const title = createElement("div", "song-title", song.title);
+    const artist = createElement("div", "song-artist", song.artist);
+
+    const tags = createElement("div", "tags");
+
+    if (song.genre) {
+        tags.appendChild(createElement("span", "tag", song.genre));
+    }
+
+    if (song.writer) {
+        tags.appendChild(createElement("span", "tag", "Written by " + song.writer));
+    }
+
+    const date = createElement(
+        "div",
+        "song-date",
+        song.date ? "Date: " + song.date : "No date added"
+    );
+
+    const actions = createElement("div", "card-actions");
+
+    const viewBtn = createElement("button", "", "Quick View");
+    viewBtn.addEventListener("click", () => openSong(song.id));
+
+    const editBtn = createElement("button", "secondary", "Edit");
+    editBtn.addEventListener("click", () => editSong(song.id));
+
+    const deleteBtn = createElement("button", "danger", "Delete");
+    deleteBtn.addEventListener("click", () => deleteSong(song.id));
+
+    actions.append(viewBtn, editBtn, deleteBtn);
+    info.append(title, artist, tags, date, actions);
+    card.append(cover, info);
+
+    return card;
+}
+
+function renderPagination(totalPages) {
+    const container = $("pagination");
+    container.replaceChildren();
+
+    if (totalPages <= 1) return;
+
+    const previous = createElement("button", "secondary", "‹");
+    previous.disabled = currentPage === 1;
+    previous.addEventListener("click", () => {
+        currentPage--;
+        renderLibrary();
+    });
+
+    container.appendChild(previous);
+
+    for (let page = 1; page <= totalPages; page++) {
+        const button = createElement(
+            "button",
+            page === currentPage ? "active" : "secondary",
+            String(page)
+        );
+
+        button.addEventListener("click", () => {
+            currentPage = page;
+            renderLibrary();
+        });
+
+        container.appendChild(button);
+    }
+
+    const next = createElement("button", "secondary", "›");
+    next.disabled = currentPage === totalPages;
+    next.addEventListener("click", () => {
+        currentPage++;
+        renderLibrary();
+    });
+
+    container.appendChild(next);
+}
+
+function openSong(id) {
+    const song = songs.find(s => s.id === id);
+    if (!song) return;
+
+    $("modalTitle").textContent = song.title;
+    $("modalArtist").textContent = song.artist;
+
+    $("modalLyrics").textContent = song.lyrics;
+
+    const tags = $("modalTags");
+    tags.replaceChildren();
+
+    [song.genre, song.writer ? "Writer: " + song.writer : "", song.date]
+        .filter(Boolean)
+        .forEach(value => {
+            tags.appendChild(createElement("span", "tag", value));
+        });
+
+    const links = $("modalLinks");
+    links.replaceChildren();
+
+    [
+        ["YouTube", song.youtube],
+        ["Audio", song.mp3]
+    ].forEach(([label, value]) => {
+        const url = safeUrl(value);
+
+        if (!url) return;
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Open " + label;
+
+        links.appendChild(link);
+    });
+
+    $("songModal").classList.add("show");
+}
+
+function closeModal() {
+    $("songModal").classList.remove("show");
+}
+
+function editSong(id) {
+    const song = songs.find(s => s.id === id);
+    if (!song) return;
+
+    editingId = id;
+
+    $("title").value = song.title;
+    $("artist").value = song.artist;
+    $("writer").value = song.writer;
+    $("genre").value = song.genre;
+    $("date").value = song.date;
+    $("cover").value = song.cover;
+    $("youtube").value = song.youtube;
+    $("mp3").value = song.mp3;
+    $("lyrics").value = song.lyrics;
+
+    $("formTitle").textContent = "✎ Edit Song";
+    $("saveBtn").textContent = "Update Song";
+    $("cancelEditBtn").hidden = false;
+
+    $("formPanel").scrollIntoView({ behavior: "smooth" });
+}
+
+function cancelEdit() {
+    editingId = null;
+    $("songForm").reset();
+
+    $("formTitle").textContent = "＋ Add New Song";
+    $("saveBtn").textContent = "Save Song";
+    $("cancelEditBtn").hidden = true;
+}
+
+function deleteSong(id) {
+    const song = songs.find(s => s.id === id);
+    if (!song) return;
+
+    if (!confirm(`Delete "${song.title}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    songs = songs.filter(s => s.id !== id);
+    saveStorage();
+
+    if (editingId === id) {
+        cancelEdit();
+    }
+
+    renderLibrary();
+}
+
+$("songForm").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const songData = {
+        title: $("title").value.trim(),
+        artist: $("artist").value.trim(),
+        writer: $("writer").value.trim(),
+        genre: $("genre").value.trim(),
+        date: $("date").value,
+        cover: $("cover").value.trim(),
+        youtube: $("youtube").value.trim(),
+        mp3: $("mp3").value.trim(),
+        lyrics: $("lyrics").value.trim()
+    };
+
+    if (!songData.title || !songData.artist || !songData.lyrics) {
+        alert("Please complete the required fields.");
+        return;
+    }
+
+    if (editingId) {
+        songs = songs.map(song =>
+            song.id === editingId
+                ? { ...song, ...songData }
+                : song
+        );
+    } else {
+        songs.push({
+            id: makeId(),
+            ...songData
+        });
+    }
+
+    saveStorage();
+    cancelEdit();
+
+    currentPage = 1;
+    renderLibrary();
+
+    alert(editingId ? "Song updated!" : "Song saved!");
+});
+
+$("cancelEditBtn").addEventListener("click", cancelEdit);
+
+$("closeModal").addEventListener("click", closeModal);
+
+$("songModal").addEventListener("click", event => {
+    if (event.target === $("songModal")) {
+        closeModal();
+    }
+});
+
+$("search").addEventListener("input", () => {
+    currentPage = 1;
+    renderLibrary();
+});
+
+$("artistFilter").addEventListener("change", () => {
+    currentPage = 1;
+    renderLibrary();
+});
+
+$("genreFilter").addEventListener("change", () => {
+    currentPage = 1;
+    renderLibrary();
+});
+
+$("sortBy").addEventListener("change", () => {
+    currentPage = 1;
+    renderLibrary();
+});
+
+// EXPORT BACKUP
+$("exportBtn").addEventListener("click", () => {
+    const file = new Blob(
+        [JSON.stringify(songs, null, 2)],
+        { type: "application/json" }
+    );
+
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "AI-Lyric-Vault-Backup.json";
+    link.click();
+
+    URL.revokeObjectURL(url);
+});
+
+// IMPORT BACKUP
+$("importBtn").addEventListener("click", () => {
+    $("importFile").click();
+});
+
+$("importFile").addEventListener("change", async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+        const content = await file.text();
+        const imported = JSON.parse(content);
+
+        if (!Array.isArray(imported)) {
+            throw new Error("Invalid backup format.");
+        }
+
+        const normalized = imported.map(normalizeSong);
+
+        if (!confirm(
+            `Import ${normalized.length} songs? Existing songs will be replaced.`
+        )) {
+            event.target.value = "";
+            return;
+        }
+
+        songs = normalized;
+        saveStorage();
+
+        currentPage = 1;
+        cancelEdit();
+        renderLibrary();
+
+        alert("Backup imported successfully!");
+    } catch (error) {
+        alert("Unable to import this file. Please check your backup.");
+    }
+
+    event.target.value = "";
+});
+
+// INITIALIZE
 renderLibrary();
 </script>
-</body>
-</html>'''
 
-path = Path("/mnt/data/AI-Lyric-Vault-V1.2.html")
-path.write_text(html, encoding="utf-8")
-print(f"Created {path} ({path.stat().st_size:,} bytes)")
+</body>
+</html>
